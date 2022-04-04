@@ -1,6 +1,7 @@
 import React from "react";
 
 function PlaceDetails({ place }) {
+  console.log(place);
   return <h1>{place.name}</h1>;
 }
 
