@@ -10,12 +10,10 @@ function Map({ setCoordinates, setBounds, coordinates }) {
   const classes = useStyles();
   const isMobile = useMediaQuery("(min-width:600px)");
 
-  // const coordinates = { lat: 0, lng: 0 };
-
   return (
     <div className={classes.mapContainer}>
       <GoogleMapReact
-        bootstrapURLKeys={{ key: "AIzaSyCWzsTqPyRPV5SUtAca5t2if_ak0MfvahU" }}
+        bootstrapURLKeys={{ key: "AIzaSyC2Sm8aFVCfg24LGjfH_4YnYPDF9d3l9ls" }}
         defaultCenter={coordinates}
         center={coordinates}
         defaultZoom={14}
@@ -23,7 +21,7 @@ function Map({ setCoordinates, setBounds, coordinates }) {
         options={""}
         onChange={(e) => {
           console.log(e);
-          setCoordinates({ lat: e.center.lat, lan: e.center.lng });
+          setCoordinates({ lat: e.center.lat, lng: e.center.lng });
           setBounds({ ne: e.marginBounds.ne, sw: e.marginBounds.sw });
         }}
         onChildClick={""}
