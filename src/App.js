@@ -1,30 +1,31 @@
 import React, { useEffect, useState } from "react";
 import { CssBaseline, Grid } from "@material-ui/core";
 
-import { getPlacesData } from "./api";
+import { getPlacesData, getWeatherData } from "./api";
 
 import Header from "./components/header/Header";
 import List from "./components/list/List";
 import Map from "./components/map/Map";
 
 const App = () => {
-  const [places, setPlaces] = useState([]);
-  const [filteredPlaces, setFilteredPlaces] = useState([]);
-
-  const [childClicked, setChildClicked] = useState(null);
-
-  const [coordinates, setCoordinates] = useState({});
-  const [bounds, setBounds] = useState({});
-
-  const [isLoading, setIsLoading] = useState(false);
-
   const [type, setType] = useState("restaurants");
   const [rating, setRating] = useState("");
+
+  const [coords, setCoords] = useState({});
+  const [bounds, setBounds] = useState(null);
+
+  const [weatherData, setWeatherData] = useState([]);
+  const [filteredPlaces, setFilteredPlaces] = useState([]);
+  const [places, setPlaces] = useState([]);
+
+  const [autocomplete, setAutocomplete] = useState(null);
+  const [childClicked, setChildClicked] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       ({ coords: { latitude, longitude } }) => {
-        setCoordinates({ lat: latitude, lng: longitude });
+        setCoords({ lat: latitude, lng: longitude });
       }
     );
   }, []);
@@ -36,22 +37,38 @@ const App = () => {
   }, [rating]);
 
   useEffect(() => {
-    console.log(coordinates, bounds);
+    if (bounds) {
+      setIsLoading(true);
 
-    setIsLoading(true);
+      getWeatherData(coords.lat, coords.lng).then((data) =>
+        setWeatherData(data)
+      );
 
-    getPlacesData(type, bounds.sw, bounds.ne).then((data) => {
-      console.log(data);
-      setPlaces(data);
-      setFilteredPlaces([]);
-      setIsLoading(false);
-    });
-  }, [type, coordinates, bounds]);
+      getPlacesData(type, bounds.sw, bounds.ne).then((data) => {
+        setPlaces(data.filter((place) => place.name && place.num_reviews > 0));
+        setFilteredPlaces([]);
+        setRating("");
+        setIsLoading(false);
+      });
+    }
+  }, [bounds, type]);
+
+  console.log(places);
+  console.log(filteredPlaces);
+
+  const onLoad = (autoC) => setAutocomplete(autoC);
+
+  const onPlaceChanged = () => {
+    const lat = autocomplete.getPlace().geometry.location.lat();
+    const lng = autocomplete.getPlace().geometry.location.lng();
+
+    setCoords({ lat, lng });
+  };
 
   return (
     <>
       <CssBaseline />
-      <Header />
+      <Header onPlaceChanged={onPlaceChanged} onLoad={onLoad} />
       <Grid container spacing={3} style={{ width: "100%" }}>
         <Grid item xs={12} md={4}>
           <List
@@ -66,11 +83,12 @@ const App = () => {
         </Grid>
         <Grid item xs={12} md={8}>
           <Map
-            setCoordinates={setCoordinates}
+            setCoords={setCoords}
             setBounds={setBounds}
-            coordinates={coordinates}
+            coords={coords}
             places={filteredPlaces.length ? filteredPlaces : places}
             setChildClicked={setChildClicked}
+            weatherData={weatherData}
           />
         </Grid>
       </Grid>
